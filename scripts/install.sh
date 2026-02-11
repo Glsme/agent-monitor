@@ -6,7 +6,7 @@ set -e
 #  Claude Code Agent Team GUI Monitor
 # ============================================
 
-REPO_URL="https://github.com/anthropics/agent-monitor"  # TODO: replace with actual repo
+REPO_URL="https://github.com/Glsme/agent-monitor.git"
 INSTALL_DIR="$HOME/.agent-monitor"
 APP_DIR="$HOME/Applications"
 DAEMON_DIR="$INSTALL_DIR/daemon"

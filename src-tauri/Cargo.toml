@@ -2,7 +2,7 @@
 name = "agent-monitor"
 version = "0.1.0"
 description = "Claude Code Agent Team Monitor"
-authors = ["you"]
+authors = ["Glsme"]
 edition = "2021"
 
 [lib]
