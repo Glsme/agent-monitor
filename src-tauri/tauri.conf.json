@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicedoc/tauri-schema/refs/heads/v2/schema.json",
+  "productName": "Agent Monitor",
+  "version": "0.1.0",
+  "identifier": "com.agent-monitor.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Agent Monitor",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 600,
+        "decorations": true,
+        "transparent": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    }
+  }
+}
