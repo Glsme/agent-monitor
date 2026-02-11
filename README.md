@@ -47,7 +47,15 @@ The app reads directly from Claude Code's local data files (`~/.claude/teams/` a
 
 ## Installation
 
-### Quick Install (Recommended)
+### npx (Recommended)
+
+```bash
+npx claude-agent-monitor
+```
+
+Downloads a pre-built binary and sets up auto-launch. No build tools required.
+
+### curl
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash

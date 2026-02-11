@@ -47,7 +47,15 @@ Claude Code에서 `TeamCreate`로 에이전트 팀을 만들면, Agent Monitor�
 
 ## 설치
 
-### 빠른 설치 (권장)
+### npx (권장)
+
+```bash
+npx claude-agent-monitor
+```
+
+빌드 도구 없이 바로 설치됩니다. 빌드된 바이너리를 다운로드하고 자동 실행을 설정합니다.
+
+### curl
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash
