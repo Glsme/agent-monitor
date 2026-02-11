@@ -47,22 +47,7 @@ The app reads directly from Claude Code's local data files (`~/.claude/teams/` a
 
 ## Installation
 
-### npm (Recommended)
-
-```bash
-npx agent-monitor
-```
-
-Or install globally:
-
-```bash
-npm install -g agent-monitor
-agent-monitor install
-```
-
-This downloads a pre-built binary and sets up auto-launch. No build tools required.
-
-### curl
+### Quick Install (Recommended)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash
@@ -164,10 +149,6 @@ agent-monitor/
 ## Uninstall
 
 ```bash
-# If installed via npm
-agent-monitor uninstall
-
-# Or via script
 bash scripts/uninstall.sh
 
 # Or manually

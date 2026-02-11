@@ -47,22 +47,7 @@ Claude Code에서 `TeamCreate`로 에이전트 팀을 만들면, Agent Monitor�
 
 ## 설치
 
-### npm (권장)
-
-```bash
-npx agent-monitor
-```
-
-또는 글로벌 설치:
-
-```bash
-npm install -g agent-monitor
-agent-monitor install
-```
-
-빌드 도구 없이 바로 설치됩니다. 빌드된 바이너리를 다운로드하고 자동 실행을 설정합니다.
-
-### curl
+### 빠른 설치 (권장)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash
@@ -164,10 +149,6 @@ agent-monitor/
 ## 제거
 
 ```bash
-# npm으로 설치한 경우
-agent-monitor uninstall
-
-# 스크립트로 제거
 bash scripts/uninstall.sh
 
 # 수동 제거
