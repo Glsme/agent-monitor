@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="docs/images/app-icon.png" alt="Agent Monitor" width="128" />
+
 **Real-time visualization for Claude Code Agent Teams**
 
 A macOS desktop app that monitors your Claude Code agent teams with a pixel-art virtual office and a live dashboard.
@@ -15,6 +17,22 @@ A macOS desktop app that monitors your Claude Code agent teams with a pixel-art 
 <img src="https://img.shields.io/badge/Platform-macOS-000000?style=flat-square" alt="macOS" />
 
 </div>
+
+---
+
+## Screenshots
+
+### Dashboard View
+
+<img src="docs/images/Dashboard.png" alt="Dashboard View" width="800" />
+
+> Agent cards, status filters, task list, and event timeline — all in one view.
+
+### Office View
+
+<img src="docs/images/Office.png" alt="Office View" width="800" />
+
+> Pixel-art virtual office where agents move between rooms based on their status.
 
 ---
 

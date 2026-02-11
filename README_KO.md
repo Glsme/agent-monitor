@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="docs/images/app-icon.png" alt="Agent Monitor" width="128" />
+
 **Claude Code Agent Team 실시간 시각화 도구**
 
 Claude Code 에이전트 팀의 활동을 픽셀아트 가상 오피스와 대시보드로 모니터링하는 macOS 데스크톱 앱입니다.
@@ -15,6 +17,22 @@ Claude Code 에이전트 팀의 활동을 픽셀아트 가상 오피스와 대�
 <img src="https://img.shields.io/badge/Platform-macOS-000000?style=flat-square" alt="macOS" />
 
 </div>
+
+---
+
+## 스크린샷
+
+### 대시보드 뷰
+
+<img src="docs/images/Dashboard.png" alt="Dashboard View" width="800" />
+
+> 에이전트 카드, 상태 필터, 태스크 목록, 이벤트 타임라인을 한눈에 확인할 수 있습니다.
+
+### 오피스 뷰
+
+<img src="docs/images/Office.png" alt="Office View" width="800" />
+
+> 에이전트가 상태에 따라 방을 이동하는 픽셀아트 가상 오피스입니다.
 
 ---
 
