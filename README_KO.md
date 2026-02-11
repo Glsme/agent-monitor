@@ -47,7 +47,30 @@ Claude Code에서 `TeamCreate`로 에이전트 팀을 만들면, Agent Monitor�
 
 ## 설치
 
-### 빠른 설치
+### npm (권장)
+
+```bash
+npx agent-monitor
+```
+
+또는 글로벌 설치:
+
+```bash
+npm install -g agent-monitor
+agent-monitor install
+```
+
+빌드 도구 없이 바로 설치됩니다. 빌드된 바이너리를 다운로드하고 자동 실행을 설정합니다.
+
+### curl
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash
+```
+
+빌드된 바이너리를 다운로드하며, 실패 시 소스에서 빌드합니다.
+
+### 소스에서 설치
 
 ```bash
 git clone https://github.com/Glsme/agent-monitor.git
@@ -55,13 +78,7 @@ cd agent-monitor
 bash scripts/install.sh
 ```
 
-설치 스크립트가 수행하는 작업:
-1. 의존성 확인 및 설치 (Node.js, Rust, Xcode CLI Tools)
-2. Tauri 앱 빌드 (릴리즈 모드)
-3. `~/Applications/Agent Monitor.app`에 설치
-4. 자동 실행 데몬 (LaunchAgent) 설정
-
-### 수동 설치 (개발용)
+### 개발용
 
 ```bash
 git clone https://github.com/Glsme/agent-monitor.git
@@ -147,16 +164,14 @@ agent-monitor/
 ## 제거
 
 ```bash
+# npm으로 설치한 경우
+agent-monitor uninstall
+
+# 스크립트로 제거
 bash scripts/uninstall.sh
-```
 
-또는 수동으로:
-
-```bash
-# 데몬 중지
+# 수동 제거
 launchctl unload ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
-
-# 파일 제거
 rm -rf ~/Applications/Agent\ Monitor.app
 rm -rf ~/.agent-monitor
 rm ~/Library/LaunchAgents/com.agent-monitor.daemon.plist

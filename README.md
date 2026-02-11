@@ -47,7 +47,30 @@ The app reads directly from Claude Code's local data files (`~/.claude/teams/` a
 
 ## Installation
 
-### Quick Install
+### npm (Recommended)
+
+```bash
+npx agent-monitor
+```
+
+Or install globally:
+
+```bash
+npm install -g agent-monitor
+agent-monitor install
+```
+
+This downloads a pre-built binary and sets up auto-launch. No build tools required.
+
+### curl
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash
+```
+
+Downloads the pre-built binary, falls back to building from source if needed.
+
+### From Source
 
 ```bash
 git clone https://github.com/Glsme/agent-monitor.git
@@ -55,13 +78,7 @@ cd agent-monitor
 bash scripts/install.sh
 ```
 
-This will:
-1. Check and install dependencies (Node.js, Rust, Xcode CLI Tools)
-2. Build the Tauri app (release mode)
-3. Install to `~/Applications/Agent Monitor.app`
-4. Set up a LaunchAgent daemon for auto-start
-
-### Manual Install (Development)
+### Development
 
 ```bash
 git clone https://github.com/Glsme/agent-monitor.git
@@ -147,16 +164,14 @@ agent-monitor/
 ## Uninstall
 
 ```bash
+# If installed via npm
+agent-monitor uninstall
+
+# Or via script
 bash scripts/uninstall.sh
-```
 
-Or manually:
-
-```bash
-# Stop daemon
+# Or manually
 launchctl unload ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
-
-# Remove files
 rm -rf ~/Applications/Agent\ Monitor.app
 rm -rf ~/.agent-monitor
 rm ~/Library/LaunchAgents/com.agent-monitor.daemon.plist

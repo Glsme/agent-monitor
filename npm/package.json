@@ -1,0 +1,32 @@
+{
+  "name": "agent-monitor",
+  "version": "0.1.0",
+  "description": "Real-time visualization for Claude Code Agent Teams — pixel-art virtual office & dashboard",
+  "keywords": [
+    "claude-code",
+    "agent",
+    "monitor",
+    "tauri",
+    "pixel-art",
+    "dashboard"
+  ],
+  "author": "Glsme",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Glsme/agent-monitor.git"
+  },
+  "homepage": "https://github.com/Glsme/agent-monitor",
+  "bin": {
+    "agent-monitor": "./bin/cli.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}
