@@ -47,6 +47,18 @@ function isInstalled() {
   return fs.existsSync(APP_PATH);
 }
 
+function findFile(dir, name) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.name === name) return full;
+    if (entry.isDirectory()) {
+      const found = findFile(full, name);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
 function download(url) {
   return new Promise((resolve, reject) => {
     const follow = (url, redirects = 0) => {
@@ -110,8 +122,17 @@ async function installApp() {
       execSync(`unzip -q "${zipPath}" -d "${tmpExtract}"`);
     }
     // Copy extracted app to install dir
-    const extractedApp = path.join(tmpExtract, APP_NAME);
+    let extractedApp = path.join(tmpExtract, APP_NAME);
     if (IS_WINDOWS) {
+      if (!fs.existsSync(extractedApp)) {
+        // Search for exe in subdirectories
+        const found = findFile(tmpExtract, APP_NAME);
+        if (found) {
+          extractedApp = found;
+        } else {
+          throw new Error("Could not find executable in archive");
+        }
+      }
       fs.cpSync(extractedApp, APP_PATH, { recursive: true });
     } else {
       execSync(`cp -R "${extractedApp}" "${APP_DIR}/"`);
@@ -127,16 +148,22 @@ async function installApp() {
 
     log(`\n${GREEN}Installation complete!${NC}\n`);
     if (IS_WINDOWS) {
-      log(`  ${CYAN}agent-monitor open${NC}       — launch now`);
+      log(`  ${CYAN}agent-monitor open${NC}        — launch now`);
+      log(`  ${CYAN}agent-monitor status${NC}      — check status`);
+      log(`  ${CYAN}agent-monitor uninstall${NC}   — remove\n`);
     } else {
       log(`  ${CYAN}open ~/Applications/Agent\\ Monitor.app${NC}  — launch now`);
+      log(`  ${CYAN}agent-monitor open${NC}                      — launch via CLI`);
+      log(`  ${CYAN}agent-monitor uninstall${NC}                  — remove\n`);
     }
-    log(`  ${CYAN}agent-monitor open${NC}                      — launch via CLI`);
-    log(`  ${CYAN}agent-monitor uninstall${NC}                  — remove\n`);
   } catch (err) {
     log(`${RED}Download failed: ${err.message}${NC}`);
     log(`\nFallback: build from source`);
-    log(`  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install.sh | bash`);
+    if (IS_WINDOWS) {
+      log(`  irm https://raw.githubusercontent.com/${REPO}/main/scripts/install.ps1 | iex`);
+    } else {
+      log(`  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install.sh | bash`);
+    }
     process.exit(1);
   }
 }
@@ -146,24 +173,53 @@ function setupDaemon() {
     fs.mkdirSync(DAEMON_DIR, { recursive: true });
 
     if (IS_WINDOWS) {
-      // Windows: Create PowerShell daemon script and register scheduled task
+      // Windows: Create PowerShell daemon script with logging and register scheduled task
+      const escapedAppPath = APP_PATH.replace(/\\/g, '\\\\');
+      const escapedInstallDir = INSTALL_DIR.replace(/\\/g, '\\\\');
       const daemonScript = `# Agent Monitor Daemon for Windows
-$AppPath = "${APP_PATH.replace(/\\/g, '\\\\')}"
-$TeamsDir = Join-Path $env:USERPROFILE ".claude\\teams"
+# Watches %USERPROFILE%\\.claude\\teams\\ and launches Agent Monitor when teams exist.
+# Registered as a Windows Task Scheduler task to run on logon.
+
+$APP_PATH = "${escapedAppPath}"
+$TEAMS_DIR = Join-Path $env:USERPROFILE ".claude\\teams"
+$CHECK_INTERVAL = 5
+$LOG_PATH = Join-Path "${escapedInstallDir}" "daemon.log"
+
+function Write-Log {
+    param([string]$Message)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $entry = "[$timestamp] AgentMonitor: $Message"
+    Add-Content -Path $LOG_PATH -Value $entry -ErrorAction SilentlyContinue
+}
+
+function Test-AppRunning {
+    $proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $APP_PATH }
+    return ($null -ne $proc)
+}
+
+function Test-ActiveTeams {
+    if (-not (Test-Path $TEAMS_DIR)) { return $false }
+    $teamDirs = Get-ChildItem -Path $TEAMS_DIR -Directory -ErrorAction SilentlyContinue
+    foreach ($dir in $teamDirs) {
+        if (Test-Path (Join-Path $dir.FullName "config.json")) { return $true }
+    }
+    return $false
+}
+
+Write-Log "Daemon started. Watching $TEAMS_DIR"
 
 while ($true) {
-    if (Test-Path $TeamsDir) {
-        $teams = Get-ChildItem -Path $TeamsDir -Directory -ErrorAction SilentlyContinue
-        if ($teams) {
-            $running = Get-Process -Name "Agent Monitor" -ErrorAction SilentlyContinue
-            if (-not $running) {
-                if (Test-Path $AppPath) {
-                    Start-Process -FilePath $AppPath
-                }
+    if (Test-ActiveTeams) {
+        if (-not (Test-AppRunning)) {
+            if (Test-Path $APP_PATH) {
+                Write-Log "Teams detected. Launching Agent Monitor."
+                Start-Process -FilePath $APP_PATH
+            } else {
+                Write-Log "Agent Monitor app not found at $APP_PATH"
             }
         }
     }
-    Start-Sleep -Seconds 5
+    Start-Sleep -Seconds $CHECK_INTERVAL
 }
 `;
       const daemonPath = path.join(DAEMON_DIR, "agent-monitor-daemon.ps1");
@@ -174,7 +230,7 @@ while ($true) {
 
       // Register as a scheduled task that runs at logon
       execSync(
-        `schtasks /Create /TN "${TASK_NAME}" /TR "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File \\"${daemonPath}\\"" /SC ONLOGON /RL LIMITED /F`,
+        `schtasks /Create /TN "${TASK_NAME}" /TR "powershell.exe -WindowStyle Hidden -ExecutionPolicy RemoteSigned -File \\"${daemonPath}\\"" /SC ONLOGON /RL LIMITED /F`,
         { stdio: "ignore" }
       );
       // Also start it now
@@ -186,8 +242,16 @@ while ($true) {
 APP_PATH="${APP_PATH}"
 TEAMS_DIR="$HOME/.claude/teams"
 
+has_active_teams() {
+  [ -d "$TEAMS_DIR" ] || return 1
+  for dir in "$TEAMS_DIR"/*/; do
+    [ -f "\${dir}config.json" ] && return 0
+  done
+  return 1
+}
+
 while true; do
-  if [ -d "$TEAMS_DIR" ] && [ "$(ls -A "$TEAMS_DIR" 2>/dev/null)" ]; then
+  if has_active_teams; then
     if ! pgrep -f "Agent Monitor" > /dev/null 2>&1; then
       open "$APP_PATH"
     fi
@@ -246,7 +310,8 @@ function openApp() {
 
 function launchApp() {
   if (IS_WINDOWS) {
-    execSync(`start "" "${APP_PATH}"`);
+    const child = spawn(APP_PATH, [], { detached: true, stdio: "ignore" });
+    child.unref();
   } else {
     execSync(`open "${APP_PATH}"`);
   }
@@ -255,9 +320,12 @@ function launchApp() {
 function uninstall() {
   log(`${CYAN}Uninstalling Agent Monitor...${NC}\n`);
 
-  // Stop daemon
+  // Stop daemon and kill running processes
   if (IS_WINDOWS) {
     try { execSync(`schtasks /Delete /TN "${TASK_NAME}" /F`, { stdio: "ignore" }); } catch {}
+    // Kill running app and daemon processes to avoid file locking
+    try { execSync(`powershell -Command "Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq '${APP_PATH.replace(/'/g, "''")}' } | Stop-Process -Force"`, { stdio: "ignore" }); } catch {}
+    try { execSync(`powershell -Command "Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like '*agent-monitor-daemon*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"`, { stdio: "ignore" }); } catch {}
   } else {
     const plistPath = path.join(LAUNCH_AGENTS, `${PLIST_NAME}.plist`);
     try { execSync(`launchctl unload "${plistPath}" 2>/dev/null`); } catch {}

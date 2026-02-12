@@ -3,11 +3,13 @@
 # Registered as a Windows Task Scheduler task to run on logon.
 
 $APP_NAME = "Agent Monitor.exe"
-$APP_DIR = Join-Path ($env:LOCALAPPDATA ?? (Join-Path $env:USERPROFILE "AppData\Local")) "AgentMonitor"
+$localAppData = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $env:USERPROFILE "AppData\Local" }
+$APP_DIR = Join-Path $localAppData "AgentMonitor"
 $APP_PATH = Join-Path $APP_DIR $APP_NAME
 $TEAMS_DIR = Join-Path $env:USERPROFILE ".claude\teams"
 $CHECK_INTERVAL = 5  # seconds
-$LOG_PATH = Join-Path $env:TEMP "agent-monitor-daemon.log"
+$INSTALL_DIR = Join-Path $env:USERPROFILE ".agent-monitor"
+$LOG_PATH = Join-Path $INSTALL_DIR "daemon.log"
 
 function Write-Log {
     param([string]$Message)
@@ -17,7 +19,7 @@ function Write-Log {
 }
 
 function Test-AppRunning {
-    $proc = Get-Process -Name "Agent Monitor" -ErrorAction SilentlyContinue
+    $proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $APP_PATH }
     return ($null -ne $proc)
 }
 

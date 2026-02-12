@@ -7,15 +7,21 @@ $ErrorActionPreference = "SilentlyContinue"
 
 $TASK_NAME = "AgentMonitorDaemon"
 $INSTALL_DIR = Join-Path $env:USERPROFILE ".agent-monitor"
-$APP_DIR = Join-Path ($env:LOCALAPPDATA ?? (Join-Path $env:USERPROFILE "AppData\Local")) "AgentMonitor"
+$localAppData = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $env:USERPROFILE "AppData\Local" }
+$APP_DIR = Join-Path $localAppData "AgentMonitor"
 $APP_PATH = Join-Path $APP_DIR "Agent Monitor.exe"
 
 Write-Host "Uninstalling Agent Monitor..." -ForegroundColor Cyan
 Write-Host ""
 
+# Kill running app and daemon processes
+Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $APP_PATH } | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*agent-monitor-daemon*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Write-Host "  ✓ Stopped running processes"
+
 # Stop and remove scheduled task
 schtasks /Delete /TN $TASK_NAME /F 2>$null | Out-Null
-Write-Host "  ✓ Daemon stopped and removed"
+Write-Host "  ✓ Daemon task removed"
 
 # Remove app
 if (Test-Path $APP_PATH) {

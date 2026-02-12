@@ -190,6 +190,8 @@ agent-monitor/
 
 ## 제거
 
+### macOS
+
 ```bash
 bash scripts/uninstall.sh
 
@@ -203,7 +205,7 @@ rm ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
 ### Windows
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/uninstall.ps1
+powershell -ExecutionPolicy RemoteSigned -File scripts/uninstall.ps1
 
 # 수동 제거
 schtasks /Delete /TN "AgentMonitorDaemon" /F

@@ -11,7 +11,8 @@ $REPO = "Glsme/agent-monitor"
 $REPO_URL = "https://github.com/$REPO.git"
 $RELEASE_URL = "https://github.com/$REPO/releases/download/v$VERSION"
 $INSTALL_DIR = Join-Path $env:USERPROFILE ".agent-monitor"
-$APP_DIR = Join-Path ($env:LOCALAPPDATA ?? (Join-Path $env:USERPROFILE "AppData\Local")) "AgentMonitor"
+$localAppData = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $env:USERPROFILE "AppData\Local" }
+$APP_DIR = Join-Path $localAppData "AgentMonitor"
 $DAEMON_DIR = Join-Path $INSTALL_DIR "daemon"
 $TASK_NAME = "AgentMonitorDaemon"
 $APP_NAME = "Agent Monitor.exe"
@@ -20,7 +21,7 @@ $APP_PATH = Join-Path $APP_DIR $APP_NAME
 function Write-Banner {
     Write-Host ""
     Write-Host "  ╔══════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "  ║     Agent Monitor - Installer        ║" -ForegroundColor Cyan
+    Write-Host "  ║     " -ForegroundColor Cyan -NoNewline; Write-Host "Agent Monitor" -ForegroundColor Green -NoNewline; Write-Host " - Installer        ║" -ForegroundColor Cyan
     Write-Host "  ║  Claude Code Team GUI Monitor        ║" -ForegroundColor Cyan
     Write-Host "  ╚══════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
@@ -197,29 +198,52 @@ function Install-Daemon {
 
     New-Item -ItemType Directory -Path $DAEMON_DIR -Force | Out-Null
 
-    # Create daemon script
+    # Create daemon script (with logging, matching standalone agent-monitor-daemon.ps1)
     $daemonScript = @"
 # Agent Monitor Daemon for Windows
 # Watches %USERPROFILE%\.claude\teams\ and launches Agent Monitor when teams exist.
+# Registered as a Windows Task Scheduler task to run on logon.
 
-`$AppPath = "$APP_PATH"
-`$TeamsDir = Join-Path `$env:USERPROFILE ".claude\teams"
-`$CheckInterval = 5
+`$APP_PATH = "$APP_PATH"
+`$TEAMS_DIR = Join-Path `$env:USERPROFILE ".claude\teams"
+`$CHECK_INTERVAL = 5
+`$LOG_PATH = Join-Path "$INSTALL_DIR" "daemon.log"
+
+function Write-Log {
+    param([string]`$Message)
+    `$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    `$entry = "[`$timestamp] AgentMonitor: `$Message"
+    Add-Content -Path `$LOG_PATH -Value `$entry -ErrorAction SilentlyContinue
+}
+
+function Test-AppRunning {
+    `$proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { `$_.Path -eq `$APP_PATH }
+    return (`$null -ne `$proc)
+}
+
+function Test-ActiveTeams {
+    if (-not (Test-Path `$TEAMS_DIR)) { return `$false }
+    `$teamDirs = Get-ChildItem -Path `$TEAMS_DIR -Directory -ErrorAction SilentlyContinue
+    foreach (`$dir in `$teamDirs) {
+        if (Test-Path (Join-Path `$dir.FullName "config.json")) { return `$true }
+    }
+    return `$false
+}
+
+Write-Log "Daemon started. Watching `$TEAMS_DIR"
 
 while (`$true) {
-    if (Test-Path `$TeamsDir) {
-        `$teams = Get-ChildItem -Path `$TeamsDir -Directory -ErrorAction SilentlyContinue |
-                  Where-Object { Test-Path (Join-Path `$_.FullName "config.json") }
-        if (`$teams) {
-            `$running = Get-Process -Name "Agent Monitor" -ErrorAction SilentlyContinue
-            if (-not `$running) {
-                if (Test-Path `$AppPath) {
-                    Start-Process -FilePath `$AppPath
-                }
+    if (Test-ActiveTeams) {
+        if (-not (Test-AppRunning)) {
+            if (Test-Path `$APP_PATH) {
+                Write-Log "Teams detected. Launching Agent Monitor."
+                Start-Process -FilePath `$APP_PATH
+            } else {
+                Write-Log "Agent Monitor app not found at `$APP_PATH"
             }
         }
     }
-    Start-Sleep -Seconds `$CheckInterval
+    Start-Sleep -Seconds `$CHECK_INTERVAL
 }
 "@
     $daemonPath = Join-Path $DAEMON_DIR "agent-monitor-daemon.ps1"
@@ -230,7 +254,7 @@ while (`$true) {
 
     # Create scheduled task to run at logon
     schtasks /Create /TN $TASK_NAME `
-        /TR "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$daemonPath`"" `
+        /TR "powershell.exe -WindowStyle Hidden -ExecutionPolicy RemoteSigned -File `"$daemonPath`"" `
         /SC ONLOGON /RL LIMITED /F | Out-Null
 
     # Start the task now
@@ -242,7 +266,7 @@ while (`$true) {
 function Write-Done {
     Write-Host ""
     Write-Host "  ╔══════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "  ║     Installation Complete! 🎉        ║" -ForegroundColor Green
+    Write-Host "  ║     Installation Complete!            ║" -ForegroundColor Green
     Write-Host "  ╚══════════════════════════════════════╝" -ForegroundColor Green
     Write-Host ""
     Write-Host "  App location:  " -NoNewline; Write-Host $APP_PATH -ForegroundColor Cyan
@@ -255,6 +279,7 @@ function Write-Done {
     Write-Host ""
     Write-Host "  Commands:" -ForegroundColor Yellow
     Write-Host "    Open now:      " -NoNewline; Write-Host "agent-monitor open" -ForegroundColor Cyan
+    Write-Host "    View logs:     " -NoNewline; Write-Host "Get-Content -Wait `$env:USERPROFILE\.agent-monitor\daemon.log" -ForegroundColor Cyan
     Write-Host "    Uninstall:     " -NoNewline; Write-Host "agent-monitor uninstall" -ForegroundColor Cyan
     Write-Host ""
 }

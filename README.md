@@ -78,9 +78,11 @@ The app reads directly from Claude Code's local data files (`~/.claude/teams/` a
 npx claude-agent-monitor
 ```
 
-Downloads a pre-built binary and sets up auto-launch. No build tools required.
+Downloads a pre-built binary and sets up auto-launch. No build tools required. Works on both macOS and Windows.
 
-### curl
+### macOS Installation
+
+#### curl
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash
@@ -88,7 +90,7 @@ curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/in
 
 Downloads the pre-built binary, falls back to building from source if needed.
 
-### From Source
+#### From Source
 
 ```bash
 git clone https://github.com/Glsme/agent-monitor.git
@@ -96,22 +98,7 @@ cd agent-monitor
 bash scripts/install.sh
 ```
 
-### Development
-
-```bash
-git clone https://github.com/Glsme/agent-monitor.git
-cd agent-monitor
-npm install
-npm run tauri dev
-```
-
 ### Windows Installation
-
-#### npx (Recommended)
-
-```powershell
-npx claude-agent-monitor
-```
 
 #### PowerShell
 
@@ -124,7 +111,16 @@ irm https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.p
 ```powershell
 git clone https://github.com/Glsme/agent-monitor.git
 cd agent-monitor
-powershell -ExecutionPolicy Bypass -File scripts/install.ps1
+powershell -ExecutionPolicy RemoteSigned -File scripts/install.ps1
+```
+
+### Development
+
+```bash
+git clone https://github.com/Glsme/agent-monitor.git
+cd agent-monitor
+npm install
+npm run tauri dev
 ```
 
 ## Usage
@@ -212,6 +208,8 @@ agent-monitor/
 
 ## Uninstall
 
+### macOS
+
 ```bash
 bash scripts/uninstall.sh
 
@@ -225,7 +223,7 @@ rm ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
 ### Windows
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/uninstall.ps1
+powershell -ExecutionPolicy RemoteSigned -File scripts/uninstall.ps1
 
 # Or manually
 schtasks /Delete /TN "AgentMonitorDaemon" /F
