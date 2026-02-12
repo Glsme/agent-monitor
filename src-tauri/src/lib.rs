@@ -110,9 +110,7 @@ fn get_claude_dir() -> PathBuf {
 }
 
 fn home_dir() -> PathBuf {
-    std::env::var("HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("/tmp"))
+    dirs::home_dir().unwrap_or_else(|| std::env::temp_dir())
 }
 
 #[tauri::command]

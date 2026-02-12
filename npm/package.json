@@ -24,7 +24,8 @@
     "bin/"
   ],
   "os": [
-    "darwin"
+    "darwin",
+    "win32"
   ],
   "engines": {
     "node": ">=18"

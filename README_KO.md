@@ -6,7 +6,7 @@
 
 **Claude Code Agent Team 실시간 시각화 도구**
 
-Claude Code 에이전트 팀의 활동을 픽셀아트 가상 오피스와 대시보드로 모니터링하는 macOS 데스크톱 앱입니다.
+Claude Code 에이전트 팀의 활동을 픽셀아트 가상 오피스와 대시보드로 모니터링하는 macOS 및 Windows 데스크톱 앱입니다.
 
 [English](./README.md)
 
@@ -14,7 +14,7 @@ Claude Code 에이전트 팀의 활동을 픽셀아트 가상 오피스와 대�
 <img src="https://img.shields.io/badge/React-18-61dafb?style=flat-square" alt="React 18" />
 <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square" alt="TypeScript" />
 <img src="https://img.shields.io/badge/Rust-2021-dea584?style=flat-square" alt="Rust" />
-<img src="https://img.shields.io/badge/Platform-macOS-000000?style=flat-square" alt="macOS" />
+<img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-000000?style=flat-square" alt="macOS | Windows" />
 
 </div>
 
@@ -53,15 +53,22 @@ Claude Code에서 `TeamCreate`로 에이전트 팀을 만들면, Agent Monitor�
 - **애니메이션** — 걷기, 바운스, 말풍선, 상태 표시등 발광
 - **상태 필터** — working / idle / blocked / offline 필터링
 - **멀티팀 지원** — 드롭다운으로 팀 전환
-- **자동 실행** — LaunchAgent 데몬이 팀 생성 시 앱 자동 실행
+- **자동 실행** — 데몬이 팀 생성 시 앱 자동 실행 (macOS: LaunchAgent, Windows: Task Scheduler)
 - **다크 픽셀아트 테마** — 레트로 게임 스타일 UI
 
 ## 요구 사항
 
+### macOS
 - **macOS** 10.15+
 - **Node.js** 18+
 - **Rust** (없으면 자동 설치)
 - **Xcode Command Line Tools**
+
+### Windows
+- **Windows** 10+
+- **Node.js** 18+
+- **Rust** (없으면 자동 설치)
+- **Visual C++ Build Tools** (소스 빌드 시 필요)
 
 ## 설치
 
@@ -111,8 +118,14 @@ npm run tauri dev
 
 ### 수동 실행
 
+**macOS:**
 ```bash
 open ~/Applications/Agent\ Monitor.app
+```
+
+**Windows:**
+```powershell
+& "$env:LOCALAPPDATA\AgentMonitor\Agent Monitor.exe"
 ```
 
 ### 뷰 설명
@@ -166,9 +179,12 @@ agent-monitor/
 │   │   └── office/      # PixelAgent, OfficeRoom, OfficeView (SVG)
 │   └── App.tsx          # 앱 셸 (뷰 토글, 팀 선택)
 ├── scripts/
-│   ├── install.sh       # 원클릭 설치 스크립트
-│   ├── uninstall.sh     # 깔끔한 제거
-│   └── agent-monitor-daemon.sh  # 자동 실행 데몬
+│   ├── install.sh       # macOS 설치 스크립트
+│   ├── install.ps1      # Windows 설치 스크립트
+│   ├── uninstall.sh     # macOS 제거
+│   ├── uninstall.ps1    # Windows 제거
+│   ├── agent-monitor-daemon.sh   # macOS 자동 실행 데몬
+│   └── agent-monitor-daemon.ps1  # Windows 자동 실행 데몬
 └── docs/                # 명세서, 데이터 모델, 디자인 시스템, UX, QA
 ```
 
@@ -182,6 +198,17 @@ launchctl unload ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
 rm -rf ~/Applications/Agent\ Monitor.app
 rm -rf ~/.agent-monitor
 rm ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
+```
+
+### Windows
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/uninstall.ps1
+
+# 수동 제거
+schtasks /Delete /TN "AgentMonitorDaemon" /F
+Remove-Item "$env:LOCALAPPDATA\AgentMonitor" -Recurse -Force
+Remove-Item "$env:USERPROFILE\.agent-monitor" -Recurse -Force
 ```
 
 ## 기술 스택

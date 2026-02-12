@@ -26,6 +26,8 @@
     }
   },
   "bundle": {
+    "active": true,
+    "targets": ["app", "dmg", "nsis", "msi"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -33,7 +35,12 @@
       "icons/icon.icns",
       "icons/icon.ico",
       "icons/icon.png"
-    ]
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
   },
   "plugins": {
     "fs": {

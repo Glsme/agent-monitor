@@ -2,6 +2,8 @@
 """Generate pixel-art app icons for Agent Monitor."""
 
 from PIL import Image, ImageDraw
+import os
+import platform
 
 # Color palette (matches app theme)
 BG = (15, 23, 42)           # pixel-bg: #0f172a
@@ -198,7 +200,7 @@ def create_icon(size):
 
 
 def main():
-    icon_dir = "/Users/seokjunehong/Desktop/Claude/agent-monitor/src-tauri/icons"
+    icon_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src-tauri", "icons")
 
     # Generate all required sizes
     sizes = {
@@ -234,7 +236,12 @@ def main():
     print(f"Created icon.ico (multi-size)")
 
     # Create .icns for macOS (using iconutil if available)
-    import subprocess, tempfile, os
+    import subprocess, tempfile
+
+    if platform.system() != "Darwin":
+        print("Skipping .icns generation (macOS only)")
+        print("\nAll icons generated!")
+        return
 
     iconset_dir = tempfile.mkdtemp(suffix=".iconset")
     icns_sizes = {
