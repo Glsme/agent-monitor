@@ -242,16 +242,8 @@ while ($true) {
 APP_PATH="${APP_PATH}"
 TEAMS_DIR="$HOME/.claude/teams"
 
-has_active_teams() {
-  [ -d "$TEAMS_DIR" ] || return 1
-  for dir in "$TEAMS_DIR"/*/; do
-    [ -f "\${dir}config.json" ] && return 0
-  done
-  return 1
-}
-
 while true; do
-  if has_active_teams; then
+  if [ -d "$TEAMS_DIR" ] && [ "$(ls -A "$TEAMS_DIR" 2>/dev/null)" ]; then
     if ! pgrep -f "Agent Monitor" > /dev/null 2>&1; then
       open "$APP_PATH"
     fi

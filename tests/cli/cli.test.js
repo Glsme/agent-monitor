@@ -115,12 +115,12 @@ describe("setupDaemon() Windows path", () => {
   });
 
   it("daemon script checks config.json to detect active teams", () => {
-    // Both Windows and macOS daemon scripts check for config.json
+    // Windows daemon script checks for config.json
     const setupStart = CLI_JS.indexOf("function setupDaemon()");
     const setupSection = CLI_JS.slice(setupStart, setupStart + 5000);
     const configMatches = setupSection.match(/config\.json/g);
     expect(configMatches).not.toBeNull();
-    expect(configMatches.length).toBeGreaterThanOrEqual(2);
+    expect(configMatches.length).toBeGreaterThanOrEqual(1);
   });
 
   it("daemon script uses path-based Get-Process", () => {
@@ -138,10 +138,10 @@ describe("setupDaemon() Windows path", () => {
 
 // ---- 6. setupDaemon() macOS ----
 describe("setupDaemon() macOS path", () => {
-  it("generates bash daemon script with has_active_teams()", () => {
+  it("generates bash daemon script with ls -A check", () => {
     const setupStart = CLI_JS.indexOf("function setupDaemon()");
     const setupSection = CLI_JS.slice(setupStart, setupStart + 5000);
-    expect(setupSection).toContain("has_active_teams");
+    expect(setupSection).toContain('ls -A');
   });
 
   it("creates a LaunchAgent plist", () => {

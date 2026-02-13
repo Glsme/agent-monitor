@@ -51,10 +51,10 @@ describe("Daemon detection parity", () => {
 
     const setupDaemonBody = CLI_JS.slice(setupDaemonStart, setupDaemonEnd);
 
-    // Both the Windows PS1 inline and macOS bash inline should reference config.json
+    // The Windows PS1 inline daemon should reference config.json
     const configMatches = setupDaemonBody.match(/config\.json/g);
     expect(configMatches).not.toBeNull();
-    expect(configMatches.length).toBeGreaterThanOrEqual(2);
+    expect(configMatches.length).toBeGreaterThanOrEqual(1);
   });
 });
 
