@@ -106,31 +106,19 @@ describe("findFile()", () => {
 
 // ---- 5. setupDaemon() Windows ----
 describe("setupDaemon() Windows path", () => {
-  // setupDaemon contains embedded template literals with PS/bash code that confuse
-  // function extraction, so we search CLI_JS directly for content unique to setupDaemon.
-
-  it("generates a PowerShell daemon script with Write-Log function", () => {
-    // The inline PS1 daemon script in setupDaemon contains Write-Log
-    expect(CLI_JS).toContain("function Write-Log");
-  });
-
-  it("daemon script checks config.json to detect active teams", () => {
-    // Windows daemon script checks for config.json
-    const setupStart = CLI_JS.indexOf("function setupDaemon()");
-    const setupSection = CLI_JS.slice(setupStart, setupStart + 5000);
-    const configMatches = setupSection.match(/config\.json/g);
-    expect(configMatches).not.toBeNull();
-    expect(configMatches.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("daemon script uses path-based Get-Process", () => {
-    expect(CLI_JS).toMatch(/\$_\.Path\s+-eq\s+\$APP_PATH/);
+  it("downloads standalone daemon script from GitHub", () => {
+    const setupStart = CLI_JS.indexOf("async function setupDaemon()");
+    expect(setupStart).toBeGreaterThan(-1);
+    const setupSection = CLI_JS.slice(setupStart, setupStart + 3000);
+    expect(setupSection).toContain("agent-monitor-daemon.ps1");
+    expect(setupSection).toContain("raw.githubusercontent.com");
+    expect(setupSection).toContain("download(daemonUrl)");
   });
 
   it("calls schtasks with RemoteSigned execution policy", () => {
     // setupDaemon registers a scheduled task with RemoteSigned
-    const setupStart = CLI_JS.indexOf("function setupDaemon()");
-    const setupSection = CLI_JS.slice(setupStart, setupStart + 5000);
+    const setupStart = CLI_JS.indexOf("async function setupDaemon()");
+    const setupSection = CLI_JS.slice(setupStart, setupStart + 3000);
     expect(setupSection).toContain("RemoteSigned");
     expect(setupSection).toContain("schtasks /Create");
   });

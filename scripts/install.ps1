@@ -198,56 +198,17 @@ function Install-Daemon {
 
     New-Item -ItemType Directory -Path $DAEMON_DIR -Force | Out-Null
 
-    # Create daemon script (with logging, matching standalone agent-monitor-daemon.ps1)
-    $daemonScript = @"
-# Agent Monitor Daemon for Windows
-# Watches %USERPROFILE%\.claude\teams\ and launches Agent Monitor when teams exist.
-# Registered as a Windows Task Scheduler task to run on logon.
-
-`$APP_PATH = "$APP_PATH"
-`$TEAMS_DIR = Join-Path `$env:USERPROFILE ".claude\teams"
-`$CHECK_INTERVAL = 5
-`$LOG_PATH = Join-Path "$INSTALL_DIR" "daemon.log"
-
-function Write-Log {
-    param([string]`$Message)
-    `$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    `$entry = "[`$timestamp] AgentMonitor: `$Message"
-    Add-Content -Path `$LOG_PATH -Value `$entry -ErrorAction SilentlyContinue
-}
-
-function Test-AppRunning {
-    `$proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { `$_.Path -eq `$APP_PATH }
-    return (`$null -ne `$proc)
-}
-
-function Test-ActiveTeams {
-    if (-not (Test-Path `$TEAMS_DIR)) { return `$false }
-    `$teamDirs = Get-ChildItem -Path `$TEAMS_DIR -Directory -ErrorAction SilentlyContinue
-    foreach (`$dir in `$teamDirs) {
-        if (Test-Path (Join-Path `$dir.FullName "config.json")) { return `$true }
-    }
-    return `$false
-}
-
-Write-Log "Daemon started. Watching `$TEAMS_DIR"
-
-while (`$true) {
-    if (Test-ActiveTeams) {
-        if (-not (Test-AppRunning)) {
-            if (Test-Path `$APP_PATH) {
-                Write-Log "Teams detected. Launching Agent Monitor."
-                Start-Process -FilePath `$APP_PATH
-            } else {
-                Write-Log "Agent Monitor app not found at `$APP_PATH"
-            }
-        }
-    }
-    Start-Sleep -Seconds `$CHECK_INTERVAL
-}
-"@
+    # Copy standalone daemon script (single source of truth)
     $daemonPath = Join-Path $DAEMON_DIR "agent-monitor-daemon.ps1"
-    Set-Content -Path $daemonPath -Value $daemonScript -Encoding UTF8
+    $localDaemon = Join-Path $PSScriptRoot "agent-monitor-daemon.ps1"
+    if (Test-Path $localDaemon) {
+        Copy-Item -Path $localDaemon -Destination $daemonPath -Force
+    } else {
+        # Download from GitHub when not running from local source
+        $daemonUrl = "https://raw.githubusercontent.com/$REPO/main/scripts/agent-monitor-daemon.ps1"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri $daemonUrl -OutFile $daemonPath -UseBasicParsing -TimeoutSec 30
+    }
 
     # Remove existing scheduled task if present
     try { schtasks /Delete /TN $TASK_NAME /F 2>$null } catch {}

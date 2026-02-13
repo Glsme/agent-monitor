@@ -39,60 +39,44 @@ describe("Daemon detection parity", () => {
     expect(DAEMON_PS1).toContain("config.json");
   });
 
-  it("cli.js contains config.json checks in both macOS and Windows daemon sections", () => {
-    // The setupDaemon function generates inline daemon scripts for both platforms.
-    // Extract its full body by finding the next top-level function after it.
-    const setupDaemonStart = CLI_JS.indexOf("function setupDaemon()");
+  it("cli.js Windows daemon downloads standalone script instead of inlining", () => {
+    const setupDaemonStart = CLI_JS.indexOf("async function setupDaemon()");
     expect(setupDaemonStart).toBeGreaterThan(-1);
 
-    // The next top-level function after setupDaemon is openApp
     const setupDaemonEnd = CLI_JS.indexOf("\nfunction openApp()", setupDaemonStart);
     expect(setupDaemonEnd).toBeGreaterThan(setupDaemonStart);
 
     const setupDaemonBody = CLI_JS.slice(setupDaemonStart, setupDaemonEnd);
 
-    // The Windows PS1 inline daemon should reference config.json
-    const configMatches = setupDaemonBody.match(/config\.json/g);
-    expect(configMatches).not.toBeNull();
-    expect(configMatches.length).toBeGreaterThanOrEqual(1);
+    // Windows branch downloads the standalone daemon script
+    expect(setupDaemonBody).toContain("agent-monitor-daemon.ps1");
+    expect(setupDaemonBody).toContain("raw.githubusercontent.com");
   });
 });
 
-describe("Windows daemon function parity", () => {
-  // All 3 Windows daemon sources should contain Write-Log, Test-AppRunning, Test-ActiveTeams
+describe("Windows daemon single source of truth", () => {
+  // The standalone daemon script is the single source of truth.
+  // cli.js and install.ps1 now download/copy it instead of inlining.
   const REQUIRED_FUNCTIONS = ["Write-Log", "Test-AppRunning", "Test-ActiveTeams"];
 
-  // Extract the Windows daemon script content from cli.js
-  function getCliJsWindowsDaemon() {
-    const marker = "const daemonScript = `# Agent Monitor Daemon";
-    const start = CLI_JS.indexOf(marker);
-    if (start === -1) return "";
-    const end = CLI_JS.indexOf("`;", start);
-    return CLI_JS.slice(start, end);
-  }
-
-  // Extract the daemon script content from install.ps1
-  function getInstallPs1Daemon() {
-    const marker = '$daemonScript = @"';
-    const start = INSTALL_PS1.indexOf(marker);
-    if (start === -1) return "";
-    const end = INSTALL_PS1.indexOf('"@', start + marker.length);
-    return INSTALL_PS1.slice(start, end);
-  }
-
-  const sources = [
-    { name: "cli.js inline daemon", content: getCliJsWindowsDaemon() },
-    { name: "install.ps1 inline daemon", content: getInstallPs1Daemon() },
-    { name: "standalone daemon.ps1", content: DAEMON_PS1 },
-  ];
-
   for (const fn of REQUIRED_FUNCTIONS) {
-    for (const source of sources) {
-      it(`${source.name} contains ${fn}`, () => {
-        expect(source.content).toContain(fn);
-      });
-    }
+    it(`standalone daemon.ps1 contains ${fn}`, () => {
+      expect(DAEMON_PS1).toContain(fn);
+    });
   }
+
+  it("cli.js does not inline daemon functions", () => {
+    // setupDaemon should not contain PowerShell function definitions
+    expect(CLI_JS).not.toContain("function Write-Log");
+    expect(CLI_JS).not.toContain("function Test-AppRunning");
+    expect(CLI_JS).not.toContain("function Test-ActiveTeams");
+  });
+
+  it("install.ps1 does not inline daemon functions", () => {
+    // Install-Daemon should not contain a here-string daemon script
+    expect(INSTALL_PS1).not.toContain('$daemonScript = @"');
+    expect(INSTALL_PS1).toContain("agent-monitor-daemon.ps1");
+  });
 });
 
 describe("ExecutionPolicy consistency", () => {

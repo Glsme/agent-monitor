@@ -144,7 +144,7 @@ async function installApp() {
 
     // Setup daemon
     log(`${YELLOW}[3/3]${NC} Setting up auto-launch daemon...`);
-    setupDaemon();
+    await setupDaemon();
 
     log(`\n${GREEN}Installation complete!${NC}\n`);
     if (IS_WINDOWS) {
@@ -168,62 +168,16 @@ async function installApp() {
   }
 }
 
-function setupDaemon() {
+async function setupDaemon() {
   try {
     fs.mkdirSync(DAEMON_DIR, { recursive: true });
 
     if (IS_WINDOWS) {
-      // Windows: Create PowerShell daemon script with logging and register scheduled task
-      const escapedAppPath = APP_PATH.replace(/\\/g, '\\\\');
-      const escapedInstallDir = INSTALL_DIR.replace(/\\/g, '\\\\');
-      const daemonScript = `# Agent Monitor Daemon for Windows
-# Watches %USERPROFILE%\\.claude\\teams\\ and launches Agent Monitor when teams exist.
-# Registered as a Windows Task Scheduler task to run on logon.
-
-$APP_PATH = "${escapedAppPath}"
-$TEAMS_DIR = Join-Path $env:USERPROFILE ".claude\\teams"
-$CHECK_INTERVAL = 5
-$LOG_PATH = Join-Path "${escapedInstallDir}" "daemon.log"
-
-function Write-Log {
-    param([string]$Message)
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $entry = "[$timestamp] AgentMonitor: $Message"
-    Add-Content -Path $LOG_PATH -Value $entry -ErrorAction SilentlyContinue
-}
-
-function Test-AppRunning {
-    $proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $APP_PATH }
-    return ($null -ne $proc)
-}
-
-function Test-ActiveTeams {
-    if (-not (Test-Path $TEAMS_DIR)) { return $false }
-    $teamDirs = Get-ChildItem -Path $TEAMS_DIR -Directory -ErrorAction SilentlyContinue
-    foreach ($dir in $teamDirs) {
-        if (Test-Path (Join-Path $dir.FullName "config.json")) { return $true }
-    }
-    return $false
-}
-
-Write-Log "Daemon started. Watching $TEAMS_DIR"
-
-while ($true) {
-    if (Test-ActiveTeams) {
-        if (-not (Test-AppRunning)) {
-            if (Test-Path $APP_PATH) {
-                Write-Log "Teams detected. Launching Agent Monitor."
-                Start-Process -FilePath $APP_PATH
-            } else {
-                Write-Log "Agent Monitor app not found at $APP_PATH"
-            }
-        }
-    }
-    Start-Sleep -Seconds $CHECK_INTERVAL
-}
-`;
+      // Windows: Download standalone daemon script (single source of truth) and register scheduled task
+      const daemonUrl = `https://raw.githubusercontent.com/${REPO}/main/scripts/agent-monitor-daemon.ps1`;
+      const daemonContent = await download(daemonUrl);
       const daemonPath = path.join(DAEMON_DIR, "agent-monitor-daemon.ps1");
-      fs.writeFileSync(daemonPath, daemonScript);
+      fs.writeFileSync(daemonPath, daemonContent);
 
       // Remove existing task if present
       try { execSync(`schtasks /Delete /TN "${TASK_NAME}" /F`, { stdio: "ignore" }); } catch {}
