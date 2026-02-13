@@ -22,6 +22,13 @@
       "allow": [
         { "path": "$HOME/.claude/**" }
       ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        { "path": "$HOME/.claude/teams/*/inboxes/*.json" },
+        { "path": "$HOME/.claude/teams/*/terminal_history.json" }
+      ]
     }
   ]
 }

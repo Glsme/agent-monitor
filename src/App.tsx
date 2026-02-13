@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useTeamData } from "@/hooks/useTeamData";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { OfficeView } from "@/components/office/OfficeView";
+import { TerminalPanel } from "@/components/terminal/TerminalPanel";
 import { ViewMode } from "@/types/agent";
 
 export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [selectedTeam, setSelectedTeam] = useState<string | undefined>(undefined);
+  const [terminalOpen, setTerminalOpen] = useState(false);
   const { snapshot, teams, loading, error } = useTeamData(selectedTeam);
 
   // Auto-select first team, or switch if current team was deleted
@@ -93,8 +95,24 @@ export default function App() {
           </button>
         </div>
 
-        {/* Right: Team selector */}
+        {/* Right: Terminal toggle + Team selector */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setTerminalOpen((prev) => !prev)}
+            className={`px-2 py-1 text-[9px] font-mono rounded transition-colors flex items-center gap-1.5 ${
+              terminalOpen
+                ? "bg-pixel-panel text-pixel-green"
+                : "text-pixel-dim hover:text-pixel-text"
+            }`}
+            title="Toggle Terminal"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" style={{ imageRendering: "pixelated" }}>
+              <rect x="1" y="2" width="14" height="12" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <polyline points="4,6 7,8.5 4,11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+              <line x1="9" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+            </svg>
+            Terminal
+          </button>
           {teams.length > 1 && (
             <select
               value={selectedTeam || ""}
@@ -130,6 +148,13 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* Terminal Panel */}
+      <TerminalPanel
+        snapshot={snapshot}
+        isOpen={terminalOpen}
+        onToggle={() => setTerminalOpen((prev) => !prev)}
+      />
     </div>
   );
 }
