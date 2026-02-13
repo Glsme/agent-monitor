@@ -6,7 +6,7 @@
 
 **Real-time visualization for Claude Code Agent Teams**
 
-A macOS desktop app that monitors your Claude Code agent teams with a pixel-art virtual office and a live dashboard.
+A desktop app for macOS and Windows that monitors your Claude Code agent teams with a pixel-art virtual office and a live dashboard.
 
 [한국어](./README_KO.md)
 
@@ -14,7 +14,7 @@ A macOS desktop app that monitors your Claude Code agent teams with a pixel-art 
 <img src="https://img.shields.io/badge/React-18-61dafb?style=flat-square" alt="React 18" />
 <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square" alt="TypeScript" />
 <img src="https://img.shields.io/badge/Rust-2021-dea584?style=flat-square" alt="Rust" />
-<img src="https://img.shields.io/badge/Platform-macOS-000000?style=flat-square" alt="macOS" />
+<img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-000000?style=flat-square" alt="macOS | Windows" />
 
 </div>
 
@@ -53,15 +53,22 @@ The app reads directly from Claude Code's local data files (`~/.claude/teams/` a
 - **Animated Agents** — Walking, idle bounce, speech bubbles, status glow indicators
 - **Status Filtering** — Filter agents by working / idle / blocked / offline
 - **Multi-Team Support** — Switch between teams via dropdown
-- **Auto-Launch** — LaunchAgent daemon starts the app when a team is created
+- **Auto-Launch** — Daemon starts the app when a team is created (LaunchAgent on macOS, Task Scheduler on Windows)
 - **Dark Pixel-Art Theme** — Retro game-inspired UI with Press Start 2P and JetBrains Mono fonts
 
 ## Requirements
 
+### macOS
 - **macOS** 10.15+
 - **Node.js** 18+
 - **Rust** (installed automatically if missing)
 - **Xcode Command Line Tools**
+
+### Windows
+- **Windows** 10+
+- **Node.js** 18+
+- **Rust** (installed automatically if missing)
+- **Visual C++ Build Tools** (for building from source)
 
 ## Installation
 
@@ -71,9 +78,11 @@ The app reads directly from Claude Code's local data files (`~/.claude/teams/` a
 npx claude-agent-monitor
 ```
 
-Downloads a pre-built binary and sets up auto-launch. No build tools required.
+Downloads a pre-built binary and sets up auto-launch. No build tools required. Works on both macOS and Windows.
 
-### curl
+### macOS Installation
+
+#### curl
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.sh | bash
@@ -81,12 +90,28 @@ curl -fsSL https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/in
 
 Downloads the pre-built binary, falls back to building from source if needed.
 
-### From Source
+#### From Source
 
 ```bash
 git clone https://github.com/Glsme/agent-monitor.git
 cd agent-monitor
 bash scripts/install.sh
+```
+
+### Windows Installation
+
+#### PowerShell
+
+```powershell
+irm https://raw.githubusercontent.com/Glsme/agent-monitor/main/scripts/install.ps1 | iex
+```
+
+#### From Source
+
+```powershell
+git clone https://github.com/Glsme/agent-monitor.git
+cd agent-monitor
+powershell -ExecutionPolicy RemoteSigned -File scripts/install.ps1
 ```
 
 ### Development
@@ -111,8 +136,14 @@ After installation, Agent Monitor runs automatically:
 
 ### Manual Launch
 
+**macOS:**
 ```bash
 open ~/Applications/Agent\ Monitor.app
+```
+
+**Windows:**
+```powershell
+& "$env:LOCALAPPDATA\AgentMonitor\Agent Monitor.exe"
 ```
 
 ### Views
@@ -166,13 +197,18 @@ agent-monitor/
 │   │   └── office/      # PixelAgent, OfficeRoom, OfficeView (SVG)
 │   └── App.tsx          # App shell with view toggle and team selector
 ├── scripts/
-│   ├── install.sh       # One-command installer
-│   ├── uninstall.sh     # Clean removal
-│   └── agent-monitor-daemon.sh  # Auto-launch daemon
+│   ├── install.sh       # macOS installer
+│   ├── install.ps1      # Windows installer
+│   ├── uninstall.sh     # macOS removal
+│   ├── uninstall.ps1    # Windows removal
+│   ├── agent-monitor-daemon.sh   # macOS auto-launch daemon
+│   └── agent-monitor-daemon.ps1  # Windows auto-launch daemon
 └── docs/                # Spec, data model, design system, UX, QA
 ```
 
 ## Uninstall
+
+### macOS
 
 ```bash
 bash scripts/uninstall.sh
@@ -182,6 +218,17 @@ launchctl unload ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
 rm -rf ~/Applications/Agent\ Monitor.app
 rm -rf ~/.agent-monitor
 rm ~/Library/LaunchAgents/com.agent-monitor.daemon.plist
+```
+
+### Windows
+
+```powershell
+powershell -ExecutionPolicy RemoteSigned -File scripts/uninstall.ps1
+
+# Or manually
+schtasks /Delete /TN "AgentMonitorDaemon" /F
+Remove-Item "$env:LOCALAPPDATA\AgentMonitor" -Recurse -Force
+Remove-Item "$env:USERPROFILE\.agent-monitor" -Recurse -Force
 ```
 
 ## Tech Stack
