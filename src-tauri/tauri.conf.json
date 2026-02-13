@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri-schema/refs/heads/v2/schema.json",
   "productName": "Agent Monitor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.agent-monitor.app",
   "build": {
     "beforeDevCommand": "npm run dev",

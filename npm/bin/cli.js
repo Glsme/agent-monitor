@@ -6,7 +6,7 @@ const path = require("path");
 const os = require("os");
 const https = require("https");
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const REPO = "Glsme/agent-monitor";
 const IS_WINDOWS = os.platform() === "win32";
 const IS_MACOS = os.platform() === "darwin";
