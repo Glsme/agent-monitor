@@ -92,3 +92,22 @@ export const STATUS_LABELS: Record<string, string> = {
   blocked: "Blocked",
   offline: "Offline",
 };
+
+// Curated 12-color palette for custom agent colors (4x3 grid)
+// - Excludes STATUS_COLORS (#8892b0, #00d98b, #e94560, #4a4a5e) to avoid status confusion
+// - Excludes eye color (#1a1a2e) and dark background-similar colors
+// - Some overlap with AGENT_COLORS defaults is intentional (allows role-swapping)
+export const CUSTOM_COLOR_PALETTE: string[] = [
+  "#ffd93d", // yellow (default: planner)
+  "#4fc3f7", // sky blue (default: researcher)
+  "#b388ff", // purple (default: ui-designer)
+  "#ff80ab", // pink (default: ux-designer)
+  "#ffab40", // orange (default: tester)
+  "#80deea", // cyan
+  "#c6ff00", // lime
+  "#f48fb1", // rose
+  "#69f0ae", // mint
+  "#ffa726", // amber
+  "#ce93d8", // lavender
+  "#aed581", // light green
+];

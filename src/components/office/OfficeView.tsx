@@ -1,8 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { TeamSnapshot, AgentState, STATUS_COLORS } from "@/types/agent";
-import { PixelAgent } from "./PixelAgent";
+import { PixelAgent, getAgentColor } from "./PixelAgent";
 import { OfficeRoom } from "./OfficeRoom";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { ColorPickerPopover } from "./ColorPickerPopover";
+import { useAgentCustomColors } from "@/hooks/useAgentCustomColors";
 
 interface OfficeViewProps {
   snapshot: TeamSnapshot;
@@ -78,6 +80,13 @@ function getPositionInRoom(room: RoomConfig, index: number, total: number): { x:
 
 export function OfficeView({ snapshot }: OfficeViewProps) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const { getCustomColor, setCustomColor, resetCustomColor } = useAgentCustomColors(snapshot.team_name);
+
+  // Close color picker when selected agent changes or is deselected
+  useEffect(() => {
+    setShowColorPicker(false);
+  }, [selectedAgent]);
 
   // Compute agent positions
   const agentPositions = useMemo(() => {
@@ -167,9 +176,11 @@ export function OfficeView({ snapshot }: OfficeViewProps) {
                 targetX={pos.x}
                 targetY={pos.y}
                 selected={selectedAgent === agent.name}
-                onClick={() =>
-                  setSelectedAgent(selectedAgent === agent.name ? null : agent.name)
-                }
+                customColor={getCustomColor(agent.name)}
+                onClick={() => {
+                  setSelectedAgent(selectedAgent === agent.name ? null : agent.name);
+                  setShowColorPicker(false);
+                }}
               />
             );
           })}
@@ -197,10 +208,44 @@ export function OfficeView({ snapshot }: OfficeViewProps) {
       </div>
 
       {/* Bottom info panel */}
-      {selectedAgentData && (
+      {selectedAgentData && (() => {
+        const customColor = getCustomColor(selectedAgentData.name);
+        const displayColor = customColor || getAgentColor(selectedAgentData.name, selectedAgentData.agent_type);
+        return (
         <div className="flex-shrink-0 bg-pixel-surface border-t border-pixel-panel p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* Color indicator + edit button */}
+              <div className="relative flex items-center gap-1">
+                <button
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  className="flex items-center gap-1 cursor-pointer"
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-sm inline-block"
+                    style={{
+                      backgroundColor: displayColor,
+                      boxShadow: customColor ? `0 0 3px ${customColor}` : "none",
+                    }}
+                  />
+                  <span className="text-[9px] text-pixel-dim hover:text-pixel-bright">/</span>
+                </button>
+                {showColorPicker && (
+                  <ColorPickerPopover
+                    currentColor={displayColor}
+                    hasCustomColor={!!customColor}
+                    onApply={(color) => {
+                      setCustomColor(selectedAgentData.name, color);
+                      setShowColorPicker(false);
+                    }}
+                    onReset={() => {
+                      resetCustomColor(selectedAgentData.name);
+                      setShowColorPicker(false);
+                    }}
+                    onClose={() => setShowColorPicker(false)}
+                  />
+                )}
+              </div>
               <span className="text-sm font-mono font-semibold text-pixel-bright">
                 {selectedAgentData.name}
               </span>
@@ -238,7 +283,8 @@ export function OfficeView({ snapshot }: OfficeViewProps) {
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

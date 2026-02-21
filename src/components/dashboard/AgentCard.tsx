@@ -6,6 +6,7 @@ interface AgentCardProps {
   agent: AgentState;
   onClick?: () => void;
   selected?: boolean;
+  customColor?: string;
 }
 
 function getAgentColor(name: string, agentType?: string): string {
@@ -22,8 +23,8 @@ function getAgentColor(name: string, agentType?: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-function AgentAvatar({ name, agentType, status }: { name: string; agentType?: string; status: string }) {
-  const color = getAgentColor(name, agentType);
+function AgentAvatar({ name, agentType, status, customColor }: { name: string; agentType?: string; status: string; customColor?: string }) {
+  const color = customColor || getAgentColor(name, agentType);
   const statusColor = STATUS_COLORS[status] || STATUS_COLORS.offline;
 
   // Pixel art avatar as inline SVG
@@ -52,9 +53,10 @@ function AgentAvatar({ name, agentType, status }: { name: string; agentType?: st
   );
 }
 
-export function AgentCard({ agent, onClick, selected }: AgentCardProps) {
+export function AgentCard({ agent, onClick, selected, customColor }: AgentCardProps) {
   const { name, agent_type, status, current_task, task_count, recent_messages } = agent;
   const borderColor = selected ? STATUS_COLORS[status] || "#8892b0" : "transparent";
+  const avatarColor = customColor || getAgentColor(name, agent_type);
 
   return (
     <div
@@ -71,7 +73,12 @@ export function AgentCard({ agent, onClick, selected }: AgentCardProps) {
       }}
     >
       <div className="flex items-start gap-3">
-        <AgentAvatar name={name} agentType={agent_type} status={status} />
+        <AgentAvatar
+          name={name}
+          agentType={agent_type}
+          status={status}
+          customColor={avatarColor}
+        />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
