@@ -9,9 +9,10 @@ interface PixelAgentProps {
   targetY: number;
   onClick?: () => void;
   selected?: boolean;
+  customColor?: string;
 }
 
-function getAgentColor(name: string, agentType?: string): string {
+export function getAgentColor(name: string, agentType?: string): string {
   const key = agentType?.toLowerCase() || name.toLowerCase();
   for (const [k, v] of Object.entries(AGENT_COLORS)) {
     if (key.includes(k)) return v;
@@ -24,13 +25,13 @@ function getAgentColor(name: string, agentType?: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-export function PixelAgent({ agent, x, y, targetX, targetY, onClick, selected }: PixelAgentProps) {
+export function PixelAgent({ agent, x, y, targetX, targetY, onClick, selected, customColor }: PixelAgentProps) {
   const [pos, setPos] = useState({ x, y });
   const [frame, setFrame] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
   const animRef = useRef<number>();
 
-  const color = getAgentColor(agent.name, agent.agent_type);
+  const color = customColor || getAgentColor(agent.name, agent.agent_type);
   const statusColor = STATUS_COLORS[agent.status] || STATUS_COLORS.offline;
 
   // Smooth movement animation
