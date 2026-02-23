@@ -6,7 +6,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$VERSION = "0.2.0"
+$VERSION = "0.3.0"
 $REPO = "Glsme/agent-monitor"
 $REPO_URL = "https://github.com/$REPO.git"
 $RELEASE_URL = "https://github.com/$REPO/releases/download/v$VERSION"
