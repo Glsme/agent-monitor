@@ -251,3 +251,7 @@ MIT
 ## Contributing
 
 Contributions are welcome! Please read the docs in `docs/` for architecture details before submitting PRs.
+
+## Release Notes
+
+- [Changelog](./CHANGELOG.md)
