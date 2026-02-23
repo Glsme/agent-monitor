@@ -1,26 +1,13 @@
 import { AgentState, AGENT_COLORS, STATUS_COLORS } from "@/types/agent";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ProgressBar } from "@/components/common/ProgressBar";
+import { getAgentColor } from "@/utils/agentColor";
 
 interface AgentCardProps {
   agent: AgentState;
   onClick?: () => void;
   selected?: boolean;
   customColor?: string;
-}
-
-function getAgentColor(name: string, agentType?: string): string {
-  const key = agentType?.toLowerCase() || name.toLowerCase();
-  for (const [k, v] of Object.entries(AGENT_COLORS)) {
-    if (key.includes(k)) return v;
-  }
-  // Generate a stable color from name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const colors = Object.values(AGENT_COLORS);
-  return colors[Math.abs(hash) % colors.length];
 }
 
 function AgentAvatar({ name, agentType, status, customColor }: { name: string; agentType?: string; status: string; customColor?: string }) {

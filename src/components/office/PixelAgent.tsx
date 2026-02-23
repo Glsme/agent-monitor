@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { AgentState, AGENT_COLORS, STATUS_COLORS } from "@/types/agent";
+import { AgentState, STATUS_COLORS } from "@/types/agent";
+import { getAgentColor } from "@/utils/agentColor";
 
 interface PixelAgentProps {
   agent: AgentState;
@@ -10,19 +11,6 @@ interface PixelAgentProps {
   onClick?: () => void;
   selected?: boolean;
   customColor?: string;
-}
-
-export function getAgentColor(name: string, agentType?: string): string {
-  const key = agentType?.toLowerCase() || name.toLowerCase();
-  for (const [k, v] of Object.entries(AGENT_COLORS)) {
-    if (key.includes(k)) return v;
-  }
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const colors = Object.values(AGENT_COLORS);
-  return colors[Math.abs(hash) % colors.length];
 }
 
 export function PixelAgent({ agent, x, y, targetX, targetY, onClick, selected, customColor }: PixelAgentProps) {
