@@ -52,6 +52,7 @@ The app reads directly from Claude Code's local data files (`~/.claude/teams/` a
 - **Office View** — SVG pixel-art office with 6 rooms (workspaces, meeting room, lounge, server room)
 - **Animated Agents** — Walking, idle bounce, speech bubbles, status glow indicators
 - **Status Filtering** — Filter agents by working / idle / blocked / offline
+- **Custom Agent Colors** — Pick and persist a custom color per agent in Office; colors are synced to Dashboard cards and kept across restarts
 - **Multi-Team Support** — Switch between teams via dropdown
 - **Auto-Launch** — Daemon starts the app when a team is created (LaunchAgent on macOS, Task Scheduler on Windows)
 - **Dark Pixel-Art Theme** — Retro game-inspired UI with Press Start 2P and JetBrains Mono fonts
@@ -156,6 +157,7 @@ open ~/Applications/Agent\ Monitor.app
 | **Status Filter** | Filter agents by status: All / Working / Idle / Blocked |
 | **Task List** | All tasks with owner, status, and blocked indicators |
 | **Timeline** | Chronological event feed (task started, completed, messages) |
+| **Agent colors** | Color edits made in Office are applied to dashboard cards instantly and persisted locally |
 
 Click an agent card to filter the task list and timeline for that agent.
 
@@ -168,7 +170,7 @@ Click an agent card to filter the task list and timeline for that agent.
 | **Lounge** | Idle agents (waiting for tasks) |
 | **Server Room** | Offline agents |
 
-Click an agent character to see their details in the bottom panel.
+Click an agent character to see their details in the bottom panel, open the color picker, and change their appearance.
 
 ## Data Sources
 

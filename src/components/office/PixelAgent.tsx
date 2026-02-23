@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { AgentState, AGENT_COLORS, STATUS_COLORS } from "@/types/agent";
+import { AgentState, STATUS_COLORS } from "@/types/agent";
+import { getAgentColor } from "@/utils/agentColor";
 
 interface PixelAgentProps {
   agent: AgentState;
@@ -9,28 +10,16 @@ interface PixelAgentProps {
   targetY: number;
   onClick?: () => void;
   selected?: boolean;
+  customColor?: string;
 }
 
-function getAgentColor(name: string, agentType?: string): string {
-  const key = agentType?.toLowerCase() || name.toLowerCase();
-  for (const [k, v] of Object.entries(AGENT_COLORS)) {
-    if (key.includes(k)) return v;
-  }
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const colors = Object.values(AGENT_COLORS);
-  return colors[Math.abs(hash) % colors.length];
-}
-
-export function PixelAgent({ agent, x, y, targetX, targetY, onClick, selected }: PixelAgentProps) {
+export function PixelAgent({ agent, x, y, targetX, targetY, onClick, selected, customColor }: PixelAgentProps) {
   const [pos, setPos] = useState({ x, y });
   const [frame, setFrame] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
   const animRef = useRef<number>();
 
-  const color = getAgentColor(agent.name, agent.agent_type);
+  const color = customColor || getAgentColor(agent.name, agent.agent_type);
   const statusColor = STATUS_COLORS[agent.status] || STATUS_COLORS.offline;
 
   // Smooth movement animation

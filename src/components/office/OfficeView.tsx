@@ -1,8 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { TeamSnapshot, AgentState, STATUS_COLORS } from "@/types/agent";
 import { PixelAgent } from "./PixelAgent";
 import { OfficeRoom } from "./OfficeRoom";
-import { StatusBadge } from "@/components/common/StatusBadge";
+import { useAgentCustomColors } from "@/hooks/useAgentCustomColors";
+import { getAgentColor } from "@/utils/agentColor";
+import { SelectedAgentPanel } from "./SelectedAgentPanel";
 
 interface OfficeViewProps {
   snapshot: TeamSnapshot;
@@ -78,6 +80,13 @@ function getPositionInRoom(room: RoomConfig, index: number, total: number): { x:
 
 export function OfficeView({ snapshot }: OfficeViewProps) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const { getCustomColor, setCustomColor, resetCustomColor } = useAgentCustomColors(snapshot.team_name);
+
+  // Close color picker when selected agent changes or is deselected
+  useEffect(() => {
+    setShowColorPicker(false);
+  }, [selectedAgent]);
 
   // Compute agent positions
   const agentPositions = useMemo(() => {
@@ -167,9 +176,11 @@ export function OfficeView({ snapshot }: OfficeViewProps) {
                 targetX={pos.x}
                 targetY={pos.y}
                 selected={selectedAgent === agent.name}
-                onClick={() =>
-                  setSelectedAgent(selectedAgent === agent.name ? null : agent.name)
-                }
+                customColor={getCustomColor(agent.name)}
+                onClick={() => {
+                  setSelectedAgent(selectedAgent === agent.name ? null : agent.name);
+                  setShowColorPicker(false);
+                }}
               />
             );
           })}
@@ -198,46 +209,25 @@ export function OfficeView({ snapshot }: OfficeViewProps) {
 
       {/* Bottom info panel */}
       {selectedAgentData && (
-        <div className="flex-shrink-0 bg-pixel-surface border-t border-pixel-panel p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-mono font-semibold text-pixel-bright">
-                {selectedAgentData.name}
-              </span>
-              <StatusBadge status={selectedAgentData.status} />
-              {selectedAgentData.agent_type && (
-                <span className="text-[10px] font-mono text-pixel-dim">
-                  ({selectedAgentData.agent_type})
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-4 text-[10px] font-mono">
-              <span className="text-pixel-green">
-                {selectedAgentData.task_count.completed} done
-              </span>
-              <span className="text-pixel-yellow">
-                {selectedAgentData.task_count.in_progress} active
-              </span>
-              <span className="text-pixel-dim">
-                {selectedAgentData.task_count.pending} pending
-              </span>
-            </div>
-          </div>
-          {selectedAgentData.current_task && (
-            <div className="mt-2 p-2 rounded bg-pixel-bg/50">
-              <p className="text-[11px] font-mono text-pixel-yellow">
-                {selectedAgentData.current_task.activeForm || selectedAgentData.current_task.subject}
-              </p>
-            </div>
-          )}
-          {selectedAgentData.recent_messages.length > 0 && (
-            <div className="mt-1.5">
-              <p className="text-[9px] font-mono text-pixel-blue">
-                Latest: {selectedAgentData.recent_messages[0]?.summary || selectedAgentData.recent_messages[0]?.content?.slice(0, 60)}
-              </p>
-            </div>
-          )}
-        </div>
+        <SelectedAgentPanel
+          agent={selectedAgentData}
+          hasCustomColor={!!getCustomColor(selectedAgentData.name)}
+          displayColor={
+            getCustomColor(selectedAgentData.name) ||
+            getAgentColor(selectedAgentData.name, selectedAgentData.agent_type)
+          }
+          showColorPicker={showColorPicker}
+          onToggleColorPicker={() => setShowColorPicker(!showColorPicker)}
+          onCloseColorPicker={() => setShowColorPicker(false)}
+          onApplyColor={(color) => {
+            setCustomColor(selectedAgentData.name, color);
+            setShowColorPicker(false);
+          }}
+          onResetColor={() => {
+            resetCustomColor(selectedAgentData.name);
+            setShowColorPicker(false);
+          }}
+        />
       )}
     </div>
   );

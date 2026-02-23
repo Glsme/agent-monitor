@@ -5,6 +5,7 @@ import { StatusFilter } from "./StatusFilter";
 import { Timeline } from "./Timeline";
 import { TaskList } from "./TaskList";
 import { ProgressBar } from "@/components/common/ProgressBar";
+import { useAgentCustomColors } from "@/hooks/useAgentCustomColors";
 
 interface DashboardProps {
   snapshot: TeamSnapshot;
@@ -13,6 +14,7 @@ interface DashboardProps {
 export function Dashboard({ snapshot }: DashboardProps) {
   const [filter, setFilter] = useState<StatusFilterType>("all");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const { getCustomColor } = useAgentCustomColors(snapshot.team_name);
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -92,6 +94,7 @@ export function Dashboard({ snapshot }: DashboardProps) {
               <AgentCard
                 key={agent.agent_id}
                 agent={agent}
+                customColor={getCustomColor(agent.name)}
                 selected={selectedAgent === agent.name}
                 onClick={() =>
                   setSelectedAgent(
